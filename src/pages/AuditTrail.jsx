@@ -22,7 +22,7 @@ function AuditTrail() {
 
   const loadAuditLogs = async () => {
     try {
-      let sql = 'SELECT * FROM audit_trail WHERE 1=1'
+      let sql = 'SELECT * FROM audit_trail'
       const params = []
       let paramIndex = 1
 
@@ -56,7 +56,7 @@ function AuditTrail() {
         paramIndex++
       }
 
-      sql += ' ORDER BY timestamp DESC LIMIT 1000'
+      sql += ' ORDER BY timestamp DESC'
 
       const result = await query(sql, params)
       setAuditLogs(result.data || [])

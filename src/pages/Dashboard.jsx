@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useDatabase } from '../contexts/DatabaseContext'
 import { Building2, Package, ShoppingCart, Users, UserCheck, TrendingUp } from 'lucide-react'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -13,10 +13,11 @@ function Dashboard() {
     customers: 0
   })
   const [loading, setLoading] = useState(true)
+  const wsRef = useRef(null)
 
   useEffect(() => {
     loadStats()
-  }, [])
+  })
 
   const loadStats = async () => {
     try {
@@ -27,11 +28,11 @@ function Dashboard() {
         customerGroupsResult,
         customersResult
       ] = await Promise.all([
-        query('SELECT COUNT(*) as count FROM companies WHERE enabled = true'),
-        query('SELECT COUNT(*) as count FROM product_groups WHERE enabled = true'),
-        query('SELECT COUNT(*) as count FROM products WHERE enabled = true'),
-        query('SELECT COUNT(*) as count FROM customer_groups WHERE enabled = true'),
-        query('SELECT COUNT(*) as count FROM customers WHERE enabled = true')
+        query('SELECT COUNT(*) as count FROM companies WHERE enabled = 1'),
+        query('SELECT COUNT(*) as count FROM product_groups WHERE enabled = 1'),
+        query('SELECT COUNT(*) as count FROM products WHERE enabled = 1'),
+        query('SELECT COUNT(*) as count FROM customer_groups WHERE enabled = 1'),
+        query('SELECT COUNT(*) as count FROM customers WHERE enabled = 1')
       ])
 
       setStats({
