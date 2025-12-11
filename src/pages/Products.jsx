@@ -45,8 +45,8 @@ function Products() {
                LEFT JOIN companies c ON p.company_code = c.company_code 
                LEFT JOIN product_groups pg ON p.prod_grp_code = pg.prod_grp_code 
                ORDER BY p.product_code`),
-        query('SELECT * FROM companies WHERE enabled = true ORDER BY company_code'),
-        query('SELECT * FROM product_groups WHERE enabled = true ORDER BY prod_grp_code')
+        query('SELECT * FROM companies WHERE enabled = 1 ORDER BY company_code'),
+        query('SELECT * FROM product_groups WHERE enabled = 1 ORDER BY prod_grp_code')
       ])
       
       setProducts(productsResult.data || [])
@@ -63,44 +63,51 @@ function Products() {
     e.preventDefault()
     
     try {
+      // prepare params with proper names and types
+      const params = {
+        code: formData.product_code,
+        short_desc: formData.product_short_desc,
+        long_desc: formData.product_long_desc,
+        prod_grp_code: formData.prod_grp_code || null,
+        company_code: formData.company_code || null,
+        pz1: formData.price_zone_1,
+        pz2: formData.price_zone_2,
+        pz3: formData.price_zone_3,
+        pz4: formData.price_zone_4,
+        pz5: formData.price_zone_5,
+        pz6: formData.price_zone_6,
+        pz7: formData.price_zone_7,
+        pz8: formData.price_zone_8,
+        pz9: formData.price_zone_9,
+        pz10: formData.price_zone_10,
+        enabled: formData.enabled ? 1 : 0
+      }
+
       if (editingProduct) {
+        // add code for WHERE
+        params.code = editingProduct.product_code
+
+        console.debug('Products UPDATE params:', params)
         await query(
           `UPDATE products SET 
-           product_short_desc = $1, 
-           product_long_desc = $2, 
-           prod_grp_code = $3,
-           company_code = $4,
-           price_zone_1 = $5,
-           price_zone_2 = $6,
-           price_zone_3 = $7,
-           price_zone_4 = $8,
-           price_zone_5 = $9,
-           price_zone_6 = $10,
-           price_zone_7 = $11,
-           price_zone_8 = $12,
-           price_zone_9 = $13,
-           price_zone_10 = $14,
-           enabled = $15, 
-           updated_at = now() 
-           WHERE product_code = $16`,
-          [
-            formData.product_short_desc,
-            formData.product_long_desc,
-            formData.prod_grp_code,
-            formData.company_code,
-            formData.price_zone_1,
-            formData.price_zone_2,
-            formData.price_zone_3,
-            formData.price_zone_4,
-            formData.price_zone_5,
-            formData.price_zone_6,
-            formData.price_zone_7,
-            formData.price_zone_8,
-            formData.price_zone_9,
-            formData.price_zone_10,
-            formData.enabled,
-            editingProduct.product_code
-          ]
+           product_short_desc = @short_desc, 
+           product_long_desc = @long_desc, 
+           prod_grp_code = @prod_grp_code,
+           company_code = @company_code,
+           price_zone_1 = @pz1,
+           price_zone_2 = @pz2,
+           price_zone_3 = @pz3,
+           price_zone_4 = @pz4,
+           price_zone_5 = @pz5,
+           price_zone_6 = @pz6,
+           price_zone_7 = @pz7,
+           price_zone_8 = @pz8,
+           price_zone_9 = @pz9,
+           price_zone_10 = @pz10,
+           enabled = @enabled, 
+           updated_at = GETUTCDATE() 
+           WHERE product_code = @code`,
+          params
         )
         
         await logAudit(
@@ -112,30 +119,14 @@ function Products() {
           user.id
         )
       } else {
+        console.debug('Products INSERT params:', params)
         await query(
           `INSERT INTO products (
             product_code, product_short_desc, product_long_desc, prod_grp_code, company_code,
             price_zone_1, price_zone_2, price_zone_3, price_zone_4, price_zone_5,
             price_zone_6, price_zone_7, price_zone_8, price_zone_9, price_zone_10, enabled
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
-          [
-            formData.product_code,
-            formData.product_short_desc,
-            formData.product_long_desc,
-            formData.prod_grp_code,
-            formData.company_code,
-            formData.price_zone_1,
-            formData.price_zone_2,
-            formData.price_zone_3,
-            formData.price_zone_4,
-            formData.price_zone_5,
-            formData.price_zone_6,
-            formData.price_zone_7,
-            formData.price_zone_8,
-            formData.price_zone_9,
-            formData.price_zone_10,
-            formData.enabled
-          ]
+           ) VALUES (@code, @short_desc, @long_desc, @prod_grp_code, @company_code, @pz1, @pz2, @pz3, @pz4, @pz5, @pz6, @pz7, @pz8, @pz9, @pz10, @enabled)`,
+          params
         )
         
         await logAudit(
@@ -148,12 +139,14 @@ function Products() {
         )
       }
       
+      // close modal, clear editing and refresh
       setShowForm(false)
       setEditingProduct(null)
       resetForm()
-      loadData()
+      await loadData()
     } catch (error) {
       console.error('Error saving product:', error)
+      alert('Error saving product: ' + (error.message || error))
     }
   }
 
@@ -205,11 +198,12 @@ function Products() {
     if (!confirm('Are you sure you want to delete this product?')) return
     
     try {
-      await query('DELETE FROM products WHERE product_code = $1', [product.product_code])
+      await query('DELETE FROM products WHERE product_code = @code', { code: product.product_code })
       await logAudit('products', product.product_code, 'DELETE', product, null, user.id)
-      loadData()
+      await loadData()
     } catch (error) {
       console.error('Error deleting product:', error)
+      alert('Error deleting product: ' + (error.message || error))
     }
   }
 
@@ -319,7 +313,6 @@ function Products() {
                       value={formData.prod_grp_code}
                       onChange={(e) => setFormData({...formData, prod_grp_code: e.target.value})}
                     >
-                      <option value="">Select Product Group</option>
                       {productGroups.map(group => (
                         <option key={group.prod_grp_code} value={group.prod_grp_code}>
                           {group.prod_grp_code} - {group.prod_grp_short_desc}

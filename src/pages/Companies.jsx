@@ -3,7 +3,7 @@ import { useDatabase } from '../contexts/DatabaseContext'
 import { useAuth } from '../contexts/AuthContext'
 import DataTable from '../components/DataTable'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { Plus, Upload } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 function Companies() {
   const { query, logAudit } = useDatabase()
@@ -34,70 +34,56 @@ function Companies() {
     }
   }
 
+  const resetForm = () => {
+    setShowForm(false)
+    setEditingCompany(null)
+    setFormData({
+      company_code: '',
+      company_short_desc: '',
+      company_long_desc: '',
+      enabled: true
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
     try {
       if (editingCompany) {
-        // Update existing company
         await query(
           `UPDATE companies SET 
-           company_short_desc = $1, 
-           company_long_desc = $2, 
-           enabled = $3, 
-           updated_at = now() 
-           WHERE company_code = $4`,
-          [
-            formData.company_short_desc,
-            formData.company_long_desc,
-            formData.enabled,
-            editingCompany.company_code
-          ]
+           company_short_desc = @short_desc, 
+           company_long_desc = @long_desc, 
+           enabled = @enabled, 
+           updated_at = GETUTCDATE() 
+           WHERE company_code = @code`,
+          {
+            short_desc: formData.company_short_desc,
+            long_desc: formData.company_long_desc,
+            enabled: formData.enabled,
+            code: editingCompany.company_code
+          }
         )
-        
-        await logAudit(
-          'companies',
-          editingCompany.company_code,
-          'UPDATE',
-          editingCompany,
-          formData,
-          user.username || user.id
-        )
+        await logAudit('companies', editingCompany.company_code, 'UPDATE', editingCompany, formData, user.username || user.id)
       } else {
-        // Create new company
         await query(
           `INSERT INTO companies (company_code, company_short_desc, company_long_desc, enabled) 
-           VALUES ($1, $2, $3, $4)`,
-          [
-            formData.company_code,
-            formData.company_short_desc,
-            formData.company_long_desc,
-            formData.enabled
-          ]
+           VALUES (@code, @short_desc, @long_desc, @enabled)`,
+          {
+            code: formData.company_code,
+            short_desc: formData.company_short_desc,
+            long_desc: formData.company_long_desc,
+            enabled: formData.enabled
+          }
         )
-        
-        await logAudit(
-          'companies',
-          formData.company_code,
-          'CREATE',
-          null,
-          formData,
-          user.username || user.id
-        )
+        await logAudit('companies', formData.company_code, 'CREATE', null, formData, user.username || user.id)
       }
       
-      setShowForm(false)
-      setEditingCompany(null)
-      setFormData({
-        company_code: '',
-        company_short_desc: '',
-        company_long_desc: '',
-        enabled: true
-      })
-      loadCompanies()
+      // Close modal and reload data on successful submission
+      resetForm();
+      await loadCompanies()
     } catch (error) {
       console.error('Error saving company:', error)
-      alert('Error saving company: ' + (error.message || 'Unknown error'))
+      alert('Error saving company: ' + error.message)
     }
   }
 
@@ -116,11 +102,12 @@ function Companies() {
     if (!confirm('Are you sure you want to delete this company?')) return
     
     try {
-      await query('DELETE FROM companies WHERE company_code = $1', [company.company_code])
+      await query('DELETE FROM companies WHERE company_code = @code', { code: company.company_code })
       await logAudit('companies', company.company_code, 'DELETE', company, null, user.username || user.id)
-      loadCompanies()
+      await loadCompanies()
     } catch (error) {
       console.error('Error deleting company:', error)
+      alert('Error deleting company: ' + error.message)
     }
   }
 
@@ -246,16 +233,7 @@ function Companies() {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowForm(false)
-                      setEditingCompany(null)
-                      setFormData({
-                        company_code: '',
-                        company_short_desc: '',
-                        company_long_desc: '',
-                        enabled: true
-                      })
-                    }}
+                    onClick={resetForm}
                     className="btn-secondary"
                   >
                     Cancel

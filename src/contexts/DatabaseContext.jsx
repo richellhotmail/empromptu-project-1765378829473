@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 
 const DatabaseContext = createContext()
 
@@ -11,157 +11,153 @@ export function useDatabase() {
 }
 
 export function DatabaseProvider({ children }) {
-  const API_BASE = 'https://builder-api.empromptu.ai'
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer 9e4ad5280dba789c2d4f1a819d0d08b7',
-    'X-Generated-App-ID': '0b5b1860-9b4f-48d5-bec3-a39c9dbcc59c',
-    'X-Usage-Key': '97c6ffe313d977b765c43c3454daf443'
-  }
+  const [initialized, setInitialized] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     initializeDatabase()
   }, [])
 
   const initializeDatabase = async () => {
+    console.log("🔄 Initializing database schema...");
     const schema = {
       tables: [
         {
           name: 'companies',
           columns: [
-            { name: 'company_code', type: 'varchar(2)', nullable: false },
-            { name: 'company_short_desc', type: 'varchar(50)', nullable: false },
-            { name: 'company_long_desc', type: 'text', nullable: true },
-            { name: 'company_image', type: 'bytea', nullable: true },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'company_code', type: 'VARCHAR(2)', nullable: false },
+            { name: 'company_short_desc', type: 'VARCHAR(50)', nullable: false },
+            { name: 'company_long_desc', type: 'TEXT', nullable: true },
+            { name: 'company_image', type: 'VARBINARY(MAX)', nullable: true },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'product_groups',
           columns: [
-            { name: 'prod_grp_code', type: 'varchar(2)', nullable: false },
-            { name: 'prod_grp_short_desc', type: 'varchar(50)', nullable: false },
-            { name: 'prod_grp_long_desc', type: 'text', nullable: true },
-            { name: 'prod_grp_image', type: 'bytea', nullable: true },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'prod_grp_code', type: 'VARCHAR(2)', nullable: false },
+            { name: 'prod_grp_short_desc', type: 'VARCHAR(50)', nullable: false },
+            { name: 'prod_grp_long_desc', type: 'TEXT', nullable: true },
+            { name: 'prod_grp_image', type: 'VARBINARY(MAX)', nullable: true },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'products',
           columns: [
-            { name: 'product_code', type: 'varchar(5)', nullable: false },
-            { name: 'product_short_desc', type: 'varchar(50)', nullable: false },
-            { name: 'product_long_desc', type: 'text', nullable: true },
-            { name: 'product_image', type: 'bytea', nullable: true },
-            { name: 'prod_grp_code', type: 'varchar(3)', nullable: false },
-            { name: 'price_zone_1', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_2', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_3', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_4', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_5', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_6', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_7', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_8', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_9', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'price_zone_10', type: 'numeric(10,2)', nullable: true, default: '0' },
-            { name: 'company_code', type: 'varchar(2)', nullable: false },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'product_code', type: 'VARCHAR(5)', nullable: false },
+            { name: 'product_short_desc', type: 'VARCHAR(50)', nullable: false },
+            { name: 'product_long_desc', type: 'TEXT', nullable: true },
+            { name: 'product_image', type: 'VARBINARY(MAX)', nullable: true },
+            { name: 'prod_grp_code', type: 'VARCHAR(3)', nullable: false },
+            { name: 'price_zone_1', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_2', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_3', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_4', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_5', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_6', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_7', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_8', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_9', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'price_zone_10', type: 'NUMERIC(10,2)', nullable: true, default: '0' },
+            { name: 'company_code', type: 'VARCHAR(2)', nullable: false },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'customer_groups',
           columns: [
-            { name: 'cust_group_code', type: 'varchar(3)', nullable: false },
-            { name: 'cust_group_short_desc', type: 'varchar(50)', nullable: false },
-            { name: 'cust_group_long_desc', type: 'text', nullable: true },
-            { name: 'cust_group_image', type: 'bytea', nullable: true },
-            { name: 'company_code', type: 'varchar(2)', nullable: false },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'cust_group_code', type: 'VARCHAR(3)', nullable: false },
+            { name: 'cust_group_short_desc', type: 'VARCHAR(50)', nullable: false },
+            { name: 'cust_group_long_desc', type: 'TEXT', nullable: true },
+            { name: 'cust_group_image', type: 'VARBINARY(MAX)', nullable: true },
+            { name: 'company_code', type: 'VARCHAR(2)', nullable: false },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'customers',
           columns: [
-            { name: 'customer_code', type: 'varchar(6)', nullable: false },
-            { name: 'customer_short_desc', type: 'varchar(50)', nullable: false },
-            { name: 'customer_long_desc', type: 'text', nullable: true },
-            { name: 'customer_image', type: 'bytea', nullable: true },
-            { name: 'cust_group_code', type: 'varchar(3)', nullable: false },
-            { name: 'company_code', type: 'varchar(2)', nullable: false },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'customer_code', type: 'VARCHAR(6)', nullable: false },
+            { name: 'customer_short_desc', type: 'VARCHAR(50)', nullable: false },
+            { name: 'customer_long_desc', type: 'TEXT', nullable: true },
+            { name: 'customer_image', type: 'VARBINARY(MAX)', nullable: true },
+            { name: 'cust_group_code', type: 'VARCHAR(3)', nullable: false },
+            { name: 'company_code', type: 'VARCHAR(2)', nullable: false },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'audit_trail',
           columns: [
-            { name: 'id', type: 'uuid', nullable: false, default: 'gen_random_uuid()' },
-            { name: 'table_name', type: 'varchar(50)', nullable: false },
-            { name: 'record_id', type: 'varchar(50)', nullable: false },
-            { name: 'action', type: 'varchar(10)', nullable: false },
-            { name: 'old_values', type: 'jsonb', nullable: true },
-            { name: 'new_values', type: 'jsonb', nullable: true },
-            { name: 'user_id', type: 'varchar(50)', nullable: false },
-            { name: 'timestamp', type: 'timestamptz', default: 'now()' }
+            { name: 'id', type: 'UNIQUEIDENTIFIER', nullable: false, default: 'NEWID()' },
+            { name: 'table_name', type: 'VARCHAR(50)', nullable: false },
+            { name: 'record_id', type: 'VARCHAR(50)', nullable: false },
+            { name: 'action', type: 'VARCHAR(10)', nullable: false },
+            { name: 'old_values', type: 'NVARCHAR(MAX)', nullable: true },
+            { name: 'new_values', type: 'NVARCHAR(MAX)', nullable: true },
+            { name: 'user_id', type: 'VARCHAR(50)', nullable: false },
+            { name: 'timestamp', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         },
         {
           name: 'users',
           columns: [
-            { name: 'id', type: 'uuid', nullable: false, default: 'gen_random_uuid()' },
-            { name: 'username', type: 'varchar(50)', nullable: false },
-            { name: 'password_hash', type: 'varchar(255)', nullable: false },
-            { name: 'role', type: 'varchar(20)', nullable: false },
-            { name: 'name', type: 'varchar(100)', nullable: false },
-            { name: 'enabled', type: 'boolean', nullable: false, default: 'true' },
-            { name: 'created_at', type: 'timestamptz', default: 'now()' },
-            { name: 'updated_at', type: 'timestamptz', default: 'now()' }
+            { name: 'id', type: 'UNIQUEIDENTIFIER', nullable: false, default: 'NEWID()' },
+            { name: 'username', type: 'VARCHAR(50)', nullable: false },
+            { name: 'password_hash', type: 'VARCHAR(255)', nullable: false },
+            { name: 'role', type: 'VARCHAR(20)', nullable: false },
+            { name: 'name', type: 'VARCHAR(100)', nullable: false },
+            { name: 'enabled', type: 'BIT', nullable: false, default: '1' },
+            { name: 'created_at', type: 'DATETIME2', default: 'GETUTCDATE()' },
+            { name: 'updated_at', type: 'DATETIME2', default: 'GETUTCDATE()' }
           ]
         }
-      ],
-      indexes: [
-        { table: 'companies', columns: ['company_code'], name: 'companies_pkey', unique: true },
-        { table: 'product_groups', columns: ['prod_grp_code'], name: 'product_groups_pkey', unique: true },
-        { table: 'products', columns: ['product_code'], name: 'products_pkey', unique: true },
-        { table: 'customer_groups', columns: ['cust_group_code'], name: 'customer_groups_pkey', unique: true },
-        { table: 'customers', columns: ['customer_code'], name: 'customers_pkey', unique: true },
-        { table: 'audit_trail', columns: ['id'], name: 'audit_trail_pkey', unique: true },
-        { table: 'users', columns: ['id'], name: 'users_pkey', unique: true },
-        { table: 'users', columns: ['username'], name: 'users_username_uq', unique: true }
       ]
     }
 
     try {
-      const response = await fetch(`${API_BASE}/database/schema`, {
+      const response = await fetch('http://localhost:3001/api/database/schema', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(schema)
       })
       
-      if (response.status === 200 || response.status === 304) {
-        console.log('Database schema initialized successfully')
+      const data = await response.json()
+      
+      if (data.success) {
+        console.log('✅ Database schema initialized successfully')
+        console.log('📊 Tables created:', schema.tables.map(t => t.name).join(', '))
+        setInitialized(true)
       } else {
-        console.error('Failed to initialize database schema')
+        console.error('❌ Failed to initialize database schema:', data.error)
+        setError(data.error)
       }
     } catch (error) {
-      console.error('Error initializing database:', error)
+      console.error('❌ Error initializing database:', error.message)
+      setError(error.message)
     }
   }
 
   const query = async (sql, params = []) => {
     try {
-      const response = await fetch(`${API_BASE}/database/query`, {
+      const response = await fetch('http://localhost:3001/api/database/query', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           query: sql,
           params
@@ -169,6 +165,12 @@ export function DatabaseProvider({ children }) {
       })
       
       const result = await response.json()
+      
+      if (!result.success) {
+        console.error('❌ Query error:', result.error)
+        throw new Error(result.error)
+      }
+      
       return result
     } catch (error) {
       console.error('Database query error:', error)
@@ -180,9 +182,17 @@ export function DatabaseProvider({ children }) {
     try {
       await query(
         `INSERT INTO audit_trail (table_name, record_id, action, old_values, new_values, user_id) 
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [tableName, recordId, action, JSON.stringify(oldValues), JSON.stringify(newValues), userId]
+         VALUES (@tableName, @recordId, @action, @oldValues, @newValues, @userId)`,
+        { 
+          tableName, 
+          recordId, 
+          action, 
+          oldValues: JSON.stringify(oldValues), 
+          newValues: JSON.stringify(newValues), 
+          userId 
+        }
       )
+      console.log(`📝 Audit logged: ${action} on ${tableName}`)
     } catch (error) {
       console.error('Error logging audit trail:', error)
     }
@@ -190,7 +200,9 @@ export function DatabaseProvider({ children }) {
 
   const value = {
     query,
-    logAudit
+    logAudit,
+    initialized,
+    error
   }
 
   return (

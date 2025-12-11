@@ -34,67 +34,54 @@ function ProductGroups() {
     }
   }
 
+  const resetForm = () => {
+    setShowForm(false)
+    setEditingGroup(null)
+    setFormData({
+      prod_grp_code: '',
+      prod_grp_short_desc: '',
+      prod_grp_long_desc: '',
+      enabled: true
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
     try {
       if (editingGroup) {
         await query(
           `UPDATE product_groups SET 
-           prod_grp_short_desc = $1, 
-           prod_grp_long_desc = $2, 
-           enabled = $3, 
-           updated_at = now() 
-           WHERE prod_grp_code = $4`,
-          [
-            formData.prod_grp_short_desc,
-            formData.prod_grp_long_desc,
-            formData.enabled,
-            editingGroup.prod_grp_code
-          ]
+           prod_grp_short_desc = @short_desc, 
+           prod_grp_long_desc = @long_desc, 
+           enabled = @enabled, 
+           updated_at = GETUTCDATE() 
+           WHERE prod_grp_code = @code`,
+          {
+            short_desc: formData.prod_grp_short_desc,
+            long_desc: formData.prod_grp_long_desc,
+            enabled: formData.enabled,
+            code: editingGroup.prod_grp_code
+          }
         )
-        
-        await logAudit(
-          'product_groups',
-          editingGroup.prod_grp_code,
-          'UPDATE',
-          editingGroup,
-          formData,
-          user.id
-        )
+        await logAudit('product_groups', editingGroup.prod_grp_code, 'UPDATE', editingGroup, formData, user.username || user.id)
       } else {
         await query(
           `INSERT INTO product_groups (prod_grp_code, prod_grp_short_desc, prod_grp_long_desc, enabled) 
-           VALUES ($1, $2, $3, $4)`,
-          [
-            formData.prod_grp_code,
-            formData.prod_grp_short_desc,
-            formData.prod_grp_long_desc,
-            formData.enabled
-          ]
+           VALUES (@code, @short_desc, @long_desc, @enabled)`,
+          {
+            code: formData.prod_grp_code,
+            short_desc: formData.prod_grp_short_desc,
+            long_desc: formData.prod_grp_long_desc,
+            enabled: formData.enabled
+          }
         )
-        
-        await logAudit(
-          'product_groups',
-          formData.prod_grp_code,
-          'CREATE',
-          null,
-          formData,
-          user.id
-        )
+        await logAudit('product_groups', formData.prod_grp_code, 'CREATE', null, formData, user.username || user.id)
       }
-      
-      setShowForm(false)
-      setEditingGroup(null)
-      setFormData({
-        prod_grp_code: '',
-        prod_grp_short_desc: '',
-        prod_grp_long_desc: '',
-        enabled: true
-      })
-      loadProductGroups()
+      resetForm()
+      await loadProductGroups()
     } catch (error) {
       console.error('Error saving product group:', error)
+      alert('Error saving product group: ' + error.message)
     }
   }
 
@@ -111,13 +98,13 @@ function ProductGroups() {
 
   const handleDelete = async (group) => {
     if (!confirm('Are you sure you want to delete this product group?')) return
-    
     try {
-      await query('DELETE FROM product_groups WHERE prod_grp_code = $1', [group.prod_grp_code])
-      await logAudit('product_groups', group.prod_grp_code, 'DELETE', group, null, user.id)
-      loadProductGroups()
+      await query('DELETE FROM product_groups WHERE prod_grp_code = @code', { code: group.prod_grp_code })
+      await logAudit('product_groups', group.prod_grp_code, 'DELETE', group, null, user.username || user.id)
+      await loadProductGroups()
     } catch (error) {
       console.error('Error deleting product group:', error)
+      alert('Error deleting product group: ' + error.message)
     }
   }
 
@@ -243,16 +230,7 @@ function ProductGroups() {
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowForm(false)
-                      setEditingGroup(null)
-                      setFormData({
-                        prod_grp_code: '',
-                        prod_grp_short_desc: '',
-                        prod_grp_long_desc: '',
-                        enabled: true
-                      })
-                    }}
+                    onClick={resetForm}
                     className="btn-secondary"
                   >
                     Cancel
