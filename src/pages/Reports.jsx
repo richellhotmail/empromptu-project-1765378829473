@@ -35,13 +35,13 @@ function Reports() {
       ] = await Promise.all([
         // Summary statistics
         Promise.all([
-          query('SELECT COUNT(*) as count FROM companies WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM product_groups WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM products WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM customer_groups WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM customers WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM products WHERE enabled = true'),
-          query('SELECT COUNT(*) as count FROM products WHERE enabled = false')
+          query('SELECT COUNT(*) as count FROM companies WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM product_groups WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM products WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM customer_groups WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM customers WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM products WHERE enabled = 1'),
+          query('SELECT COUNT(*) as count FROM products WHERE enabled = 0')
         ]),
         
         // Products by group
