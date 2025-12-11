@@ -178,7 +178,7 @@ function Companies() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Company Code
+                    Company Codess
                   </label>
                   <input
                     type="text"
